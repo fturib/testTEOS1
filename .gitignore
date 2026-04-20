@@ -1,0 +1,69 @@
+# Build directories (CMake, STM32CubeIDE)
+build/
+Debug/
+Release/
+cmake-build-*/
+
+# Generated binaries and executables
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.axf
+*.out
+
+# Object files and intermediate build artifacts
+*.o
+*.obj
+*.d
+*.dep
+*.a
+*.lib
+*.so
+*.dll
+
+# STM32CubeMX / STM32CubeIDE project files (optional - uncomment if you want to ignore)
+# *.mxproject
+# *.cproject
+# *.project
+# .settings/
+# .metadata/
+
+# Keep the .ioc file (STM32CubeMX configuration) - do not ignore this
+# testTEOS1.ioc
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.old
+
+# STM32CubeProgrammer and flashing tools
+*.stldr
+*.dfu
+
+# Documentation and reports (if generated)
+*.html
+*.pdf
+*.chm
+
+# External libraries and dependencies (if not committed)
+# Drivers/ (uncomment if you want to ignore generated HAL drivers)
+# Middlewares/ (uncomment if you want to ignore middleware)
