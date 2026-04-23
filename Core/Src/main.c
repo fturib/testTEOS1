@@ -22,52 +22,89 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
-#include "noteI2c.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "button.h"
+#include "measure.h"
 #include "note.h"
-
+#include "noteI2C.h"
+#include "notecard.h"
+#include <math.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
 
-    /* Private includes
-       ----------------------------------------------------------*/
-    /* USER CODE BEGIN Includes */
+/* USER CODE END Includes */
 
-    /* USER CODE END Includes */
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
 
-    /* Private typedef
-       -----------------------------------------------------------*/
-    /* USER CODE BEGIN PTD */
+/* USER CODE END PTD */
 
-    /* USER CODE END PTD */
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
 
-    /* Private define
-       ------------------------------------------------------------*/
-    /* USER CODE BEGIN PD */
+/* USER CODE END PD */
 
-    /* USER CODE END PD */
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
 
-    /* Private macro
-       -------------------------------------------------------------*/
-    /* USER CODE BEGIN PM */
+/* USER CODE END PM */
 
-    /* USER CODE END PM */
+/* Private variables ---------------------------------------------------------*/
 
-    /* Private variables
-       ---------------------------------------------------------*/
+/* USER CODE BEGIN PV */
 
-    /* USER CODE BEGIN PV */
+/* USER CODE END PV */
 
-    /* USER CODE END PV */
-
-    /* Private function prototypes
-       -----------------------------------------------*/
-    void
-    SystemClock_Config(void);
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void UX_signal(int length) {
+    HAL_GPIO_WritePin(TEST_SGN_GPIO_Port, TEST_SGN_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+    HAL_Delay(100*length);
+    HAL_GPIO_WritePin(TEST_SGN_GPIO_Port, TEST_SGN_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+}
+
+void flipLED(int delay) {
+    HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
+    if (delay > 0) {
+        HAL_Delay(delay*100);
+    }
+}
+
+void LEDon(void) {
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+}
+
+void LEDoff(void) {
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+}
+
+void logInfo(const char* message, int severity) {
+    char buffer[128];
+    sprintf(buffer, "LOG: %s\r\n", message);
+    LEDon();
+    HAL_UART_Transmit(&huart2, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+    LEDoff();
+    UX_signal(10);
+    for(int i=0; i<severity*2; i++) {
+        flipLED(1);
+    }
+    LEDoff();
+    UX_signal(10);
+}
 
 /* USER CODE END 0 */
 
@@ -105,41 +142,53 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+  // Initialize button interrupt handling
+  buttonInit();
+
+  // Initialize measure module
+  initMeasure();
+
   // Initialize note-c library
   NoteSetFn(malloc, free, HAL_Delay, HAL_GetTick);
   NoteSetFnI2C(NOTE_I2C_ADDR_DEFAULT, NOTE_I2C_MAX_DEFAULT, noteI2CReset, noteI2CTransmit, noteI2CReceive);
+
+  const char *errorInfo;
+  errorInfo = noteCardCheckInit();
+  if (errorInfo != NULL) {
+    logInfo(errorInfo, 10);
+  }
+  int timePressed = 0;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-      while (1) {
+    while (1) {
 
     uint8_t data;
-
-    HAL_Delay(1000);
-    // 1. Turn LED ON: Starting work
-    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(TEST_SGN_GPIO_Port, TEST_SGN_Pin, GPIO_PIN_SET);
-    data = 0xAA;
-    HAL_UART_Transmit(&huart2, &data, 1, HAL_MAX_DELAY);
-    HAL_Delay(100);
-    data = 0x5F;
-    HAL_UART_Transmit(&huart2, &data, 1, HAL_MAX_DELAY);
-
-    // 2. Perform Measurements
-    // [Your ADC and UART code here]
-
-    // 3. Turn LED OFF: Measurement complete
-    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(TEST_SGN_GPIO_Port, TEST_SGN_Pin, GPIO_PIN_RESET);
-
-    // 4. Wait for the next hour (1 hour = 3,600,000 ms)
-    HAL_Delay(500);
+    // Check for button press event
+    LEDoff();
+    timePressed = 0;
+    while (buttonIsDown()) {
+      flipLED(1);
+      timePressed++;
+    }
+    if (timePressed > 2) {
+      LEDon();
+          // Button press detected - perform action
+      uint8_t value = getMeasure();
+      float_t turbidityValue = (float_t)value / 255.0f * 100.0f; // Example conversion to percentage
+      errorInfo = sendMeasure(0, value, turbidityValue);
+      LEDoff();
+      if (errorInfo != NULL) {
+        logInfo(errorInfo, 3);
+      }
+      buttonClearFlag();
+    }
   }
-    /* USER CODE END WHILE */
+  /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+  /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 
@@ -188,6 +237,23 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  if (GPIO_Pin == USER_BTN_Pin) {
+    uint32_t currentTime = HAL_GetTick();
+    flipLED(0);
+
+    // Debounce: ignore if interrupt occurred within BUTTON_DEBOUNCE_TIME_MS
+    // if ((currentTime - lastButtonPressTime) >= BUTTON_DEBOUNCE_TIME_MS) {
+    //   // Check if button is actually pressed (low on PC13)
+    //   if (HAL_GPIO_ReadPin(USER_BTN_GPIO_Port, USER_BTN_Pin) ==
+    //       GPIO_PIN_RESET) {
+    //     buttonPressed = true;
+    //     lastButtonPressTime = currentTime;
+    //   }
+    // }
+  }
+}
 
 /* USER CODE END 4 */
 

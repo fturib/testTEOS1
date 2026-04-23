@@ -24,8 +24,11 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/adc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/button.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/i2c.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/measure.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/noteI2c.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/notecard.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/usart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32l4xx_it.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32l4xx_hal_msp.c
@@ -34,24 +37,6 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32l433xx.s
 )
 
-# Note-c library sources
-set(NOTE_C_Src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_atof.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_b64.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cjson.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cjson_helpers.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cobs.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_const.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_ftoa.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_helpers.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_hooks.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_i2c.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_md5.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_printf.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_request.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_serial.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_str.c
-)
 
 # STM32 HAL/LL Drivers
 set(STM32_Drivers_Src
@@ -79,6 +64,24 @@ set(STM32_Drivers_Src
 
 # Drivers Midllewares
 
+# Note-c library sources
+set(NOTE_C_Src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_atof.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_b64.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cjson.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cjson_helpers.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_cobs.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_const.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_ftoa.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_helpers.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_hooks.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_i2c.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_md5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_printf.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_request.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_serial.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/note-c/n_str.c
+)
 
 
 # Link directories setup
